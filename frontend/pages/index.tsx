@@ -126,6 +126,41 @@ const Home: NextPage = () => {
     </>
   }
 
+  // ここからGPTコード記載
+
+  const [nftList, setNftList] = useState([]);
+  // NFT一覧を取得する関数
+  const getNftList = async () => {
+    const provider = await new ethers.providers.Web3Provider((window as any).ethereum);
+    const contract = await new ethers.Contract(contractAddress, abi, provider);
+
+    try {
+      // コントラクトからNFT一覧を取得するメソッドを呼び出す
+      const nftListData = await contract.getNftList(); // これはコントラクトの実際のメソッド名に置き換えてください
+      setNftList(nftListData);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    // ページがマウントされたときにNFT一覧を取得
+    getNftList();
+  }, []); // 空の依存リストを指定して一度だけ実行
+
+  // ... 既存のコード ...
+
+  // NFT一覧を表示する部分
+  const nftListItems = nftList.map((nft, index) => (
+    <div key={index}>
+      {/* NFT情報を表示するUI要素を作成 */}
+      <p>NFT #{index + 1}: {nft.name}</p>
+      <p>Owner: {nft.owner}</p>
+      {/* 他のNFT情報をここに表示 */}
+    </div>
+  ));
+
+
   return (
     <div>
       <Seo
@@ -137,9 +172,12 @@ const Home: NextPage = () => {
       />
       <Header />
       <MintButton/>
+  
+      {/* NFT一覧を表示 */}
+      {nftListItems}
+  
       <Footer />
     </div>
-    
   );
 };
 
