@@ -3,6 +3,7 @@
     "@openzeppelin/contracts": "^4.7.0",
     "@types/axios": "^0.14.0",
     "axios": "^1.5.1",
+    "next": "^12.1.5",
     "web3": "^4.1.2",
     "yarn": "^1.22.19"
   },
