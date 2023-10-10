@@ -62,7 +62,9 @@ const Home: NextPage = () => {
           imageURI
         }
         console.log(item);
-        setItems(prevItems => [...prevItems, item]); // item を items に追加
+        const [items, setItems] = useState<{ tokenId: any; name: any; description: any; tokenURI: string; imageURI: any; }[]>([]);
+        // item を items に追加
+        setItems(prevItems => [...prevItems, item]);
       }
 
       // 以下のコードはコメントアウト
