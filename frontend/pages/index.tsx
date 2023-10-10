@@ -91,7 +91,7 @@ const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const displayedItems = items.slice(indexOfFirstItem, indexOfLastItem);
   
-  const NFTImage = ({ src, alt }) => {
+  const NFTImage = ({ src, alt }: { src: string; alt: string }) => {
     return (
       <div className="w-full h-96 md:h-auto object-cover md:w-48 rounded-t-lg md:rounded-none md:rounded-l-lg">
         <Image src={src} alt={alt} layout="fill" objectFit="cover" />
