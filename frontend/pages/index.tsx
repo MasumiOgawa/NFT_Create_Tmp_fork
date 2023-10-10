@@ -5,33 +5,99 @@ import Image from 'next/image';
 import Seo from './components/Seo';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import axios from "axios";
+
 
 const Home: NextPage = () => {
-
   const [mintNum, setMintNum] = useState(0);
   const [mintQuantity, setmintQuantity] = useState(1);
   const [disabledFlag, setDisabledFlag] = useState(false);
-  const abi = [
-    'function totalSupply() public view virtual override returns (uint256)',
-    "function mint(uint _mintAmount) public payable",
-  ]
-  const contractAddress = "0x08e62C3CD353063a95817435e862658C8F3C7482"
+  const [abi, setAbi] = useState<any[]>([]);
+  const [items, setItems] = useState([]); // items ステートを追加
+  const contractAddress = "0x42e4a3De5bb63e88b3E4eAE69f033Be7De93444a";
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // 1ページあたりのアイテム数
+
   useEffect(() => {
-    const setSaleInfo = async() =>{
+    const loadAbi = async () => {
+      const response = await fetch('/nftABI.json');
+      const abiData = await response.json();
+      setAbi(abiData);
+    };
+    loadAbi();
+  }, []);
+
+  useEffect(() => {
+    if (abi.length === 0) return;
+
+    const setSaleInfo = async() => {
       const provider = await new ethers.providers.Web3Provider((window as any).ethereum);
       const signer =  await provider.getSigner();
-      const contract =await new ethers.Contract(contractAddress, abi, signer);
+      const contract = new ethers.Contract(contractAddress, abi, signer);
 
-      try{
-        const mintNumber = (await contract.totalSupply()).toString();
-        console.log('mintNumber = ' + mintNumber);
-        setMintNum(mintNumber);
-      }catch(e){
-        console.log(e);
+      const userAddress = await signer.getAddress();
+      console.log(userAddress);
+
+      const nftCount = await contract.balanceOf(userAddress);
+      console.log('mintCount='+nftCount);
+
+      const tokenIds = await contract.tokensOfOwner(userAddress);
+      for (let i = 0; i < tokenIds.length; i++) {
+        const tokenId = tokenIds[i].toNumber();
+    
+        let tokenURI = 'https://bafybeid5fds5mdzuzk5gxotlkkcgck7tz4l3flyid54dde33lvprwia6yy.ipfs.nftstorage.link/' + tokenId + '.json';
+        console.log(tokenURI);
+        const meta = await axios.get(tokenURI);
+
+        const name = meta.data.name;
+        const description = meta.data.description;
+        const imageURI = meta.data.image.replace('ipfs://', 'https://ipfs.io/ipfs/');
+
+        const item = {
+          tokenId,
+          name,
+          description,
+          tokenURI,
+          imageURI
+        }
+        console.log(item);
+        setItems(prevItems => [...prevItems, item]); // item を items に追加
       }
+
+      // 以下のコードはコメントアウト
+      // ...
     };
     setSaleInfo();
-  });
+  }, [abi]); // dependencies を指定
+
+  const totalPages = Math.ceil(items.length / itemsPerPage);
+
+const nextPage = () => {
+  if (currentPage < totalPages) {
+    setCurrentPage(currentPage + 1);
+  }
+};
+
+const prevPage = () => {
+  if (currentPage > 1) {
+    setCurrentPage(currentPage - 1);
+  }
+};
+
+const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const displayedItems = items.slice(indexOfFirstItem, indexOfLastItem);
+  
+  const NFTImage = ({ src, alt }) => {
+    return (
+      <div className="w-full h-96 md:h-auto object-cover md:w-48 rounded-t-lg md:rounded-none md:rounded-l-lg">
+        <Image src={src} alt={alt} layout="fill" objectFit="cover" />
+      </div>
+    );
+  };
+
+
 
   // ミントボタン用
   function MintButton() {
@@ -53,7 +119,7 @@ const Home: NextPage = () => {
           method: 'wallet_addEthereumChain',
           params: [{
             chainId: '0x13881',
-            chainName: 'Mumbai',
+            chainName: 'Mumbai Testnet',
             nativeCurrency: {
               name: 'MATIC',
               symbol: 'MATIC',
@@ -103,63 +169,63 @@ const Home: NextPage = () => {
         alert(jsonData);
       }
     };
+
+    
+    
+
+
+
     return <>
-    <div className="bg-black pb-16 flex flex-wrap buttom justify-center">
-      <div className='px-8 pt-8 lg:px-28 lg:py-28'>
-        <Image className="min-w-full" src="/14.png" alt="Main Image" width={500} height={500}/>
+    <div className="bg-[#93c5fd] pb-16 flex flex-wrap buttom justify-center h-[1000px]" >
+      <div className="top-image h-[300px]">
+        <div className='px-8 pt-8 lg:px-28 lg:py-28'>
+          <Image className="min-w-full" src="/14.png" alt="Main Image" width={300} height={300}/>
+        </div>
       </div>
-      <div className="m-12 lg:m-32 px-12 py-6 lg:pt-8 lg:px-20 border-2 bg-black text-center border-[#FFFFFF] bg-center bg-contain bg-no-repeat">
-        <h1 className="text-2xl lg:text-4xl pt-2 lg:pt-4 lg:pb-6 text-white font-['Impact']">Show Mee Member NFT</h1>
-        <h1 className="text-2xl lg:text-4xl pt-2 lg:pt-4 lg:pb-6 text-white font-['Impact']"> {mintNum} / 100</h1>
-        <a className="text-2xl lg:text-4xl pt-2 lg:pt-8 lg:pb-8 text-white font-['Impact']">1</a><a className="text-2xl lg:text-3xl pt-2 lg:pt-8 lg:pb-8 text-[#99CDDB] font-['Impact'] ">MAX</a><br/>
+        {/* NFTミントエリア */}
+      <div className = "mintarea">
+        <div className="m-12 lg:m-32 px-12 py-6 lg:pt-8 lg:px-20 border-2 bg-[#737373] text-center border-[#FFFFFF] bg-center bg-contain bg-no-repeat">
+          <h1 className="text-2xl lg:text-4xl pt-2 lg:pt-4 lg:pb-6 text-white font-['Impact']">お店の証明NFTを発行する</h1>
+          <h1 className="text-2xl lg:text-4xl pt-2 lg:pt-4 lg:pb-6 text-white font-['Impact']"> {mintNum} / 100</h1>
+          <a className="text-2xl lg:text-4xl pt-2 lg:pt-8 lg:pb-8 text-white font-['Impact']">1</a><a className="text-2xl lg:text-3xl pt-2 lg:pt-8 lg:pb-8 text-[#99CDDB] font-['Impact'] ">MAX</a><br/>
         
         { (!disabledFlag) && <button type="button" className="text-xl lg:text-2xl py-1 lg:py-3 px-12 lg:px-24 inline-flex justify-center items-center gap-2 rounded-full border border-transparent
-        bg-[#FFFFFF] border-yellow-200 font-['Impact'] text-[#99CDDB] hover:yellow-500 hover:bg-[#99CDDB] hover:text-[#FFFFFF] hover:border-[#FFFFFF] mt-20
+        bg-[#FFFFFF] border-yellow-200 font-['Impact'] text-[#99CDDB] hover:yellow-500 hover:bg-[#99CDDB] hover:text-[#FFFFFF] hover:border-[#FFFFFF]
           focus:outline-none focus:ring-2 focus:ring-yellow-200 focus:ring-offset-2 transition-all dark:focus:ring-offset-gray-800" onClick={() => addChain()}>
-        CONNECT WALLET</button>}
+        ウォレットに接続する</button>}
         { (disabledFlag) && <button type="button" className="text-xl lg:text-2xl py-1 lg:py-3 px-12 lg:px-24 inline-flex justify-center items-center gap-2 rounded-full border border-transparent
         bg-[#FFFFFF] border-yellow-200 font-['Impact'] text-[#99CDDB] hover:yellow-500 hover:bg-[#99CDDB] hover:text-[#FFFFFF] hover:border-[#FFFFFF]
           focus:outline-none focus:ring-2 focus:ring-yellow-200 focus:ring-offset-2 transition-all dark:focus:ring-offset-gray-800" onClick={() => nftMint()}>
         MINT NOW</button>}
+        </div>
       </div>
+      {/* ミントエリア */}
+      <div> 
+      <div>
+      {
+
+  
+      items.map((item, i) => (
+              <div key={i} className="flex justify-center pl-1 py-2 mb-1" >
+                <div className="flex flex-col md:flex-row md:max-w-xl rounded-lg bg-white shadow-l">
+                <img className="md:h-auto object-cover  rounded-t-lg md:rounded-none md:rounded-l-lg" width={100} height={100} src={item.imageURI} alt="" />
+                <div className="p-6 flex flex-col justify-start">
+                  <h5 className="text-gray-900 text-xl font-medium mb-2">ブランド名：{item.name}</h5>
+                    <p className="text-gray-700 text-base mb-4">
+                        商品詳細：{item.description}
+                    </p>
+                 </div>
+                </div>
+              </div>
+      ))
+      }
+     </div>
+     
+    </div>
+
     </div>
     </>
   }
-
-  // ここからGPTコード記載
-
-  const [nftList, setNftList] = useState([]);
-  // NFT一覧を取得する関数
-  const getNftList = async () => {
-    const provider = await new ethers.providers.Web3Provider((window as any).ethereum);
-    const contract = await new ethers.Contract(contractAddress, abi, provider);
-
-    try {
-      // コントラクトからNFT一覧を取得するメソッドを呼び出す
-      const nftListData = await contract.getNftList(); // これはコントラクトの実際のメソッド名に置き換えてください
-      setNftList(nftListData);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  useEffect(() => {
-    // ページがマウントされたときにNFT一覧を取得
-    getNftList();
-  }, []); // 空の依存リストを指定して一度だけ実行
-
-  // ... 既存のコード ...
-
-  // NFT一覧を表示する部分
-  const nftListItems = nftList.map((nft, index) => (
-    <div key={index}>
-      {/* NFT情報を表示するUI要素を作成 */}
-      <p>NFT #{index + 1}: {nft.name}</p>
-      <p>Owner: {nft.owner}</p>
-      {/* 他のNFT情報をここに表示 */}
-    </div>
-  ));
-
 
   return (
     <div>
@@ -172,12 +238,10 @@ const Home: NextPage = () => {
       />
       <Header />
       <MintButton/>
-  
-      {/* NFT一覧を表示 */}
-      {nftListItems}
-  
+      
       <Footer />
     </div>
+    
   );
 };
 
