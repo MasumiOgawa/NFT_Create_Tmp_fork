@@ -13,7 +13,8 @@ const Home: NextPage = () => {
   const [mintQuantity, setmintQuantity] = useState(1);
   const [disabledFlag, setDisabledFlag] = useState(false);
   const [abi, setAbi] = useState<any[]>([]);
-  const [items, setItems] = useState([]); // items ステートを追加
+  const [items, setItems] = useState<{ tokenId: any; name: any; description: any; tokenURI: string; imageURI: any; }[]>([]);
+ // items ステートを追加
   const contractAddress = "0x42e4a3De5bb63e88b3E4eAE69f033Be7De93444a";
 
   const [currentPage, setCurrentPage] = useState(1);
