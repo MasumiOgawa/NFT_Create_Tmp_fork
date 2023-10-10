@@ -44,6 +44,9 @@ const Home: NextPage = () => {
       console.log('mintCount='+nftCount);
 
       const tokenIds = await contract.tokensOfOwner(userAddress);
+
+      let tempItems: { tokenId: any; name: any; description: any; tokenURI: string; imageURI: any; }[] = []; // 一時的な配列を初期化
+
       for (let i = 0; i < tokenIds.length; i++) {
         const tokenId = tokenIds[i].toNumber();
     
@@ -61,15 +64,13 @@ const Home: NextPage = () => {
           description,
           tokenURI,
           imageURI
-        }
+        };
         console.log(item);
-        const [items, setItems] = useState<{ tokenId: any; name: any; description: any; tokenURI: string; imageURI: any; }[]>([]);
-        // item を items に追加
-        setItems(prevItems => [...prevItems, item]);
+        // item を items に追加 
+        tempItems.push(item); 
       }
+      setItems(prevItems => [...prevItems, ...tempItems]);
 
-      // 以下のコードはコメントアウト
-      // ...
     };
     setSaleInfo();
   }, [abi]); // dependencies を指定
