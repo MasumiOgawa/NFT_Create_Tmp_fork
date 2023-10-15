@@ -42,6 +42,7 @@ const Home: NextPage = () => {
 
       const nftCount = await contract.balanceOf(userAddress);
       console.log('mintCount='+nftCount);
+      setMintNum(nftCount.toNumber());
 
       const tokenIds = await contract.tokensOfOwner(userAddress);
 
@@ -180,7 +181,7 @@ const indexOfLastItem = currentPage * itemsPerPage;
 
 
     return <>
-    <div className="bg-[#93c5fd] pb-16 flex flex-wrap buttom justify-center h-[1000px]" >
+    <div className="bg-white pb-16 flex flex-wrap buttom justify-center h-[300]" >
       <div className="top-image h-[300px]">
         <div className='px-8 pt-8 lg:px-28 lg:py-28'>
           <Image className="min-w-full" src="/14.png" alt="Main Image" width={300} height={300}/>
